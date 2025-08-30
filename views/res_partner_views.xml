@@ -1,0 +1,59 @@
+<odoo>
+    <!-- Extend Contact Form View -->
+    <record id="view_partner_form_gps_tracking" model="ir.ui.view">
+        <field name="name">res.partner.form.gps.tracking</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Add GPS tracking buttons to the form header -->
+            <xpath expr="//sheet/div[hasclass('oe_button_box')]" position="inside">
+                <button name="action_customer_check_in"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-map-marker"
+                        string="Check In"
+                        invisible ="not is_company"
+                        help="Check in at this customer location"/>
+                <button name="action_customer_check_out"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-sign-out"
+                        string="Check Out"
+                        invisible ="not is_company"
+                        help="Check out from this customer location"/>
+            </xpath>
+
+            <!-- Add GPS tracking tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="GPS Tracking" name="gps_tracking">
+                    <group>
+                        <group string="Customer Check-ins">
+                            <field name="customer_checkins" readonly="1">
+                                <tree>
+                                    <field name="timestamp"/>
+                                    <field name="employee_id"/>
+                                    <field name="tracking_type"/>
+                                    <field name="comment"/>
+                                    <field name="latitude"/>
+                                    <field name="longitude"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group string="Contact Check-ins" invisible ="is_company">
+                            <field name="contact_checkins" readonly="1">
+                                <tree>
+                                    <field name="timestamp"/>
+                                    <field name="employee_id"/>
+                                    <field name="tracking_type"/>
+                                    <field name="comment"/>
+                                    <field name="latitude"/>
+                                    <field name="longitude"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

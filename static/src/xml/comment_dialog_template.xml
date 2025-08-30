@@ -1,0 +1,37 @@
+<odoo>
+    <t t-name="gps_tracker.CommentDialog">
+        <Dialog size="'md'" title="props.title">
+            <div class="mb-3">
+                <label class="form-label" for="comment_input">
+                    <i class="fa fa-comment-o"></i> Comment (Optional)
+                </label>
+                <textarea
+                    id="comment_input"
+                    class="form-control"
+                    rows="3"
+                    placeholder="Enter your comment here..."
+                    t-model="state.comment"
+                    style="resize: vertical;">
+                </textarea>
+                <div class="form-text text-muted">
+                    This comment will be visible on the GPS tracking map.
+                </div>
+            </div>
+
+            <t t-set-slot="footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary me-2"
+                    t-on-click="onCancel">
+                    <i class="fa fa-times"></i> Cancel
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    t-on-click="onConfirm">
+                    <i class="fa fa-check"></i> Continue
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</odoo>

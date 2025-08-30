@@ -1,0 +1,17 @@
+<odoo>
+    <record id="gps_tracking_employee_rule" model="ir.rule">
+        <field name="name">GPS Tracking: Employee Restriction</field>
+        <field name="model_id" ref="model_gps_tracking"/>
+        <field name="domain_force">[('employee_id.user_id.id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="gps_tracking_admin_rule" model="ir.rule">
+        <field name="name">GPS Tracking: Admin Full Access</field>
+        <field name="model_id" ref="model_gps_tracking"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+</odoo>
+
+

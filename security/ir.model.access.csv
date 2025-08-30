@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_gps_tracking_admin,access_gps_tracking_admin,model_gps_tracking,base.group_user,1,1,1,1
+access_customer_checkin_wizard,access_customer_checkin_wizard,model_customer_checkin_wizard,base.group_user,1,1,1,1
+access_customer_checkout_wizard,access_customer_checkout_wizard,model_customer_checkout_wizard,base.group_user,1,1,1,1

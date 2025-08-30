@@ -1,0 +1,544 @@
+<odoo>
+    <t t-name="field_service_tracking.tracking_route_template">
+        <div class="o_gps_tracking_container">
+
+            <!-- Filter Section -->
+            <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
+                <t t-if="state.isAdmin">
+                    <div class="d-flex flex-column">
+                        <label class="small fw-bold mb-1">Select Employee</label>
+                        <select class="form-select" name="employeeId" t-on-change="onChangeFilter">
+                            <option value="">-- Select Employee --</option>
+                            <t t-foreach="state.employees" t-as="emp" t-key="emp.id">
+                                <option t-att-value="emp.id" t-att-selected="emp.id == state.employeeId">
+                                    <t t-esc="emp.name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </t>
+                <div class="d-flex flex-column">
+                    <label class="small fw-bold mb-1">Select Date</label>
+                    <input type="date" name="date" class="form-select" t-att-value="state.date"
+                           t-on-change="onChangeFilter"/>
+                </div>
+            </div>
+
+            <!-- Main Content with Sidebar Layout -->
+            <div class="o_gps_main_layout">
+                <!-- Employee Info Sidebar -->
+                <t t-if="state.info">
+                    <div class="o_employee_sidebar">
+                        <div class="o_sidebar_header">
+                            <h6 class="mb-0">
+                                <i class="fa fa-user text-primary"></i>
+                                Employee Info
+                            </h6>
+                        </div>
+                        <div class="o_sidebar_content">
+                            <!-- Avatar -->
+                            <div class="o_employee_avatar">
+                                <img t-if="state.info.image_128"
+                                     t-att-src="state.info.image_128"
+                                     class="rounded-circle"
+                                     width="80" height="80"/>
+                                <div t-if="!state.info.image_128" class="o_default_avatar">
+                                    <i class="fa fa-user fa-3x text-muted"></i>
+                                </div>
+                            </div>
+
+                            <!-- Employee Name -->
+                            <h6 class="o_employee_name mb-3">
+                                <t t-esc="state.info.name"/>
+                            </h6>
+
+                            <!-- Info Items -->
+                            <div class="o_info_items">
+                                <div class="o_info_item">
+                                    <i class="fa fa-map-marker text-info"></i>
+                                    <span class="o_info_label">Locations:</span>
+                                    <span class="o_info_value"><t t-esc="state.info.total_points"/></span>
+                                </div>
+
+                                <!-- Live tracking info -->
+                                <t t-if="state.info.is_live">
+                                    <div class="o_info_item o_live_item">
+                                        <i class="fa fa-circle text-danger"></i>
+                                        <span class="o_info_label">Live Duration:</span>
+                                        <span class="o_info_value text-danger fw-bold">
+                                            <t t-esc="state.info.current_duration"/>
+                                        </span>
+                                    </div>
+                                    <div class="o_info_item">
+                                        <i class="fa fa-clock text-muted"></i>
+                                        <span class="o_info_label">Check-in:</span>
+                                        <span class="o_info_value">
+                                            <t t-esc="state.info.check_in_time or 'N/A'"/>
+                                        </span>
+                                    </div>
+                                    <t t-if="state.info.total_traveled_distance_km">
+                                        <div class="o_info_item o_live_item">
+                                            <i class="fa fa-route text-danger"></i>
+                                            <span class="o_info_label">Live Traveled:</span>
+                                            <span class="o_info_value text-danger fw-bold">
+                                                <t t-esc="state.info.total_traveled_distance_km"/> km
+                                            </span>
+                                        </div>
+                                    </t>
+                                </t>
+
+                                <!-- Historical info -->
+                                <t t-if="state.info.actual_distance">
+                                    <div class="o_info_item o_distance_item">
+                                        <i class="fa fa-route text-primary"></i>
+                                        <span class="o_info_label">Route Distance:</span>
+                                        <span class="o_info_value text-primary fw-bold">
+                                            <t t-esc="state.info.actual_distance"/>
+                                        </span>
+                                    </div>
+                                </t>
+
+                                <t t-if="state.info.expected_duration">
+                                    <div class="o_info_item">
+                                        <i class="fa fa-hourglass text-muted"></i>
+                                        <span class="o_info_label">Expected Duration:</span>
+                                        <span class="o_info_value"><t t-esc="state.info.expected_duration"/></span>
+                                        <small class="text-muted d-block">(Google Maps estimated travel time)</small>
+                                    </div>
+                                </t>
+                                <t t-if="!state.info.expected_duration and state.info.traveled_duration">
+                                    <div class="o_info_item">
+                                        <i class="fa fa-hourglass text-muted"></i>
+                                        <span class="o_info_label">Expected Duration:</span>
+                                        <span class="o_info_value text-muted">Not available</span>
+                                        <small class="text-muted d-block">(Using traveled duration: <t t-esc="state.info.traveled_duration"/>)</small>
+                                    </div>
+                                </t>
+                                <t t-if="!state.info.expected_duration and !state.info.traveled_duration">
+                                    <div class="o_info_item">
+                                        <i class="fa fa-hourglass text-muted"></i>
+                                        <span class="o_info_label">Expected Duration:</span>
+                                        <span class="o_info_value text-muted">No data available</span>
+                                    </div>
+                                </t>
+                                <t t-if="state.info.traveled_duration">
+                                    <div class="o_info_item">
+                                        <i class="fa fa-clock text-muted"></i>
+                                        <span class="o_info_label">Traveled Duration:</span>
+                                        <span class="o_info_value"><t t-esc="state.info.traveled_duration"/></span>
+                                    </div>
+                                </t>
+                                <t t-if="state.info.speed_kmh">
+                                    <div class="o_info_item">
+                                        <i class="fa fa-tachometer-alt text-muted"></i>
+                                        <span class="o_info_label">Avg Speed:</span>
+                                        <span class="o_info_value" t-att-class="state.info.speed_is_unusual and 'text-danger fw-bold' or ''">
+                                            <t t-esc="state.info.speed_kmh"/> km/h
+                                        </span>
+                                    </div>
+                                </t>
+
+                                <div class="o_info_item">
+                                    <i class="fa fa-briefcase text-success"></i>
+                                    <span class="o_info_label">Work Hours:</span>
+                                    <span class="o_info_value"><t t-esc="state.info.work_hours"/> h</span>
+                                </div>
+                                <div class="o_info_item">
+                                    <i class="fa fa-coffee text-warning"></i>
+                                    <span class="o_info_label">Rest Hours:</span>
+                                    <span class="o_info_value"><t t-esc="state.info.rest_hours"/> h</span>
+                                </div>
+                            </div>
+
+                            <!-- Debug Information (remove in production) -->
+                            <t t-if="state.info">
+                                <div class="o_debug_info mt-3 p-2" style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-size: 11px;">
+                                    <strong>Debug Info:</strong><br/>
+                                    Expected Duration: <t t-esc="state.info.expected_duration or 'null'"/><br/>
+                                    Traveled Duration: <t t-esc="state.info.traveled_duration or 'null'"/><br/>
+                                    Speed: <t t-esc="state.info.speed_kmh or 'null'"/> km/h<br/>
+                                    Total Points: <t t-esc="state.info.total_points or 'null'"/>
+                                </div>
+                            </t>
+
+                            <!-- Distance explanation -->
+                            <t t-if="state.info.actual_distance and state.info.actual_distance != '0 km'">
+                                <div class="o_distance_explanation">
+                                    <small class="text-muted">
+                                        <i class="fa fa-info-circle"></i>
+                                        <strong>Distance Calculation:</strong>
+                                        Route distance uses Google Maps to calculate actual road distances following real routes.
+                                    </small>
+                                </div>
+                            </t>
+
+                            <!-- Google Maps API Warning -->
+                            <t t-if="state.info.actual_distance == '0 km'">
+                                <div class="o_distance_explanation">
+                                    <small class="text-danger">
+                                        <i class="fa fa-exclamation-triangle"></i>
+                                        <strong>Warning:</strong>
+                                        Google Maps API key not configured. Please contact your administrator to enable accurate route distance calculations.
+                                    </small>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Main Content Area -->
+                <div class="o_main_content">
+                    <!-- GPS Map Container -->
+                    <div class="o_gps_map_container card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fa fa-map text-success"></i>
+                                GPS Tracking Map
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div t-ref="map" id="gps_map" class="o_gps_map"></div>
+
+                            <!-- Route Segment Legend -->
+                            <div class="o_route_legend mt-3">
+                                <h6 class="mb-2">
+                                    <i class="fa fa-route text-info"></i>
+                                    Route Segments
+                                </h6>
+                                <div class="o_legend_items">
+                                    <div class="o_legend_item">
+                                        <span class="o_legend_color" style="background-color: #4285F4;"></span>
+                                        <span class="o_legend_text">Segment 1 (Outbound)</span>
+                                    </div>
+                                    <div class="o_legend_item">
+                                        <span class="o_legend_color" style="background-color: #EA4335;"></span>
+                                        <span class="o_legend_text">Segment 2 (Return)</span>
+                                    </div>
+                                    <div class="o_legend_item">
+                                        <span class="o_legend_color" style="background-color: #FBBC05;"></span>
+                                        <span class="o_legend_text">Segment 3+ (Additional Routes)</span>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fa fa-info-circle"></i>
+                                    Routes are automatically detected based on direction changes and use Google Maps for accurate path calculation.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .o_gps_tracking_container {
+                padding: 5px;
+                max-width: 1700px;
+                margin: 0 auto;
+            }
+
+            .o_gps_main_layout {
+                display: flex;
+                gap: 15px;
+            }
+
+            .o_employee_sidebar {
+                flex: 0 0 280px; /* Reduced from 300px */
+                padding: 12px;
+                background-color: #f8f9fa;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+
+            .o_sidebar_header {
+                background-color: #e9ecef;
+                padding: 8px 12px;
+                border-radius: 6px;
+                margin-bottom: 12px;
+            }
+
+            .o_sidebar_header h6 {
+                margin-bottom: 0;
+                color: #343a40;
+                font-size: 14px;
+            }
+
+            .o_employee_avatar {
+                text-align: center;
+                margin-bottom: 12px;
+            }
+
+            .o_employee_avatar img {
+                border: 3px solid #fff;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+
+            .o_default_avatar {
+                background-color: #f0f0f0;
+                border-radius: 50%;
+                width: 80px;
+                height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto;
+            }
+
+            .o_employee_name {
+                text-align: center;
+                color: #495057;
+                margin-bottom: 12px;
+                font-size: 16px;
+            }
+
+            .o_info_items {
+                margin-top: 12px;
+            }
+
+            .o_info_item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+                color: #6c757d;
+                font-size: 13px;
+            }
+
+            .o_info_item i {
+                margin-right: 8px;
+                color: #6c757d;
+                width: 16px;
+            }
+
+            .o_info_label {
+                font-weight: 600;
+                margin-right: 5px;
+                min-width: 80px;
+            }
+
+            .o_info_value {
+                font-weight: 500;
+                color: #343a40;
+            }
+
+            .o_live_item {
+                color: #dc3545; /* Red for live tracking */
+            }
+
+            .o_distance_item {
+                color: #007bff; /* Blue for historical distance */
+            }
+
+            .o_distance_explanation {
+                margin-top: 12px;
+                padding-top: 8px;
+                border-top: 1px solid #eee;
+                font-size: 12px;
+            }
+
+            .o_distance_explanation .text-danger {
+                border-left: 3px solid #dc3545;
+                padding-left: 8px;
+                background-color: #f8d7da;
+                padding: 8px;
+                border-radius: 4px;
+            }
+
+            .o_main_content {
+                flex: 1; /* Takes remaining space */
+                min-width: 0; /* Prevents flex item from overflowing */
+            }
+
+            .o_gps_map_container {
+                width: 100%;
+                height: 550px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                position: relative;
+            }
+
+            .o_gps_map {
+                width: 100%;
+                height: 100%;
+            }
+
+            .status-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding: 5px 0;
+            }
+
+            .status-item label {
+                font-weight: 600;
+                margin-bottom: 0;
+            }
+
+            .card-header {
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .btn-toolbar .btn-group {
+                margin-right: 10px;
+            }
+
+            .list-unstyled li {
+                margin-bottom: 5px;
+                padding: 2px 0;
+            }
+
+            .list-unstyled li i {
+                margin-right: 8px;
+                width: 16px;
+            }
+
+            /* Live tracking animation */
+            @keyframes pulse {
+                0% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.7;
+                    transform: scale(1.05);
+                }
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            /* GPS status indicator animation */
+            .gps-status-indicator {
+                animation: pulse 2s infinite;
+            }
+
+            .live-status .alert {
+                border-radius: 8px;
+                border: none;
+            }
+
+            .live-status .alert-danger {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+
+            .live-status .alert-info {
+                background-color: #d1ecf1;
+                color: #0c5460;
+            }
+
+            /* Route Segment Legend Styles */
+            .o_route_legend {
+                background-color: #f8f9fa;
+                padding: 10px 15px;
+                border-radius: 6px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                margin-top: 15px;
+            }
+
+            .o_route_legend h6 {
+                margin-bottom: 8px;
+                color: #343a40;
+                font-size: 14px;
+            }
+
+            .o_legend_items {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 8px;
+            }
+
+            .o_legend_item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .o_legend_color {
+                width: 15px;
+                height: 15px;
+                border-radius: 3px;
+            }
+
+            .o_legend_text {
+                font-size: 13px;
+                color: #495057;
+            }
+
+            /* Responsive design for smaller screens */
+            @media (max-width: 768px) {
+                .o_gps_tracking_container {
+                    padding: 3px;
+                }
+
+                .o_gps_main_layout {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .o_employee_sidebar {
+                    flex: none;
+                    width: 100%;
+                    order: 1; /* Employee info comes first on mobile */
+                    padding: 10px;
+                }
+
+                .o_main_content {
+                    order: 2; /* Map comes second on mobile */
+                }
+
+                .o_gps_map {
+                    height: 400px; /* Smaller map on mobile */
+                }
+
+                .o_employee_sidebar {
+                    flex: none;
+                    width: 100%;
+                }
+
+                .o_info_item {
+                    font-size: 12px;
+                }
+
+                .o_info_label {
+                    min-width: 70px;
+                }
+            }
+
+            @media (max-width: 576px) {
+                .o_gps_tracking_container {
+                    padding: 2px;
+                }
+
+                .o_employee_sidebar {
+                    padding: 8px;
+                }
+
+                .o_sidebar_header {
+                    padding: 6px 10px;
+                }
+
+                .o_employee_avatar img,
+                .o_default_avatar {
+                    width: 60px;
+                    height: 60px;
+                }
+
+                .o_info_item {
+                    font-size: 11px;
+                }
+
+                .o_info_label {
+                    min-width: 65px;
+                }
+
+                .o_gps_map {
+                    height: 350px;
+                }
+            }
+        </style>
+    </t>
+</odoo>
